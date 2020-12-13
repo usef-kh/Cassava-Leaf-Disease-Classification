@@ -19,6 +19,9 @@ class Vgg(nn.Module):
         self.conv4a = nn.Conv2d(256, 512, 3, padding=1)
         self.conv4b = nn.Conv2d(512, 512, 3, padding=1)
 
+        self.conv5a = nn.Conv2d(512, 512, 3, padding=1)
+        self.conv5b = nn.Conv2d(512, 512, 3, padding=1)
+
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.bn1a = nn.BatchNorm2d(64)
@@ -32,6 +35,9 @@ class Vgg(nn.Module):
 
         self.bn4a = nn.BatchNorm2d(512)
         self.bn4b = nn.BatchNorm2d(512)
+
+        self.bn5a = nn.BatchNorm2d(512)
+        self.bn5b = nn.BatchNorm2d(512)
 
         self.lin1 = nn.Linear(512 * 6 * 8, 4096)
         self.lin2 = nn.Linear(4096, 4096)
@@ -54,6 +60,10 @@ class Vgg(nn.Module):
 
         x = F.relu(self.bn4a(self.conv4a(x)))
         x = F.relu(self.bn4b(self.conv4b(x)))
+        x = self.pool(x)
+
+        x = F.relu(self.bn5a(self.conv5a(x)))
+        x = F.relu(self.bn5b(self.conv5b(x)))
         x = self.pool(x)
 
         x = x.view(-1, 512 * 6 * 8)
