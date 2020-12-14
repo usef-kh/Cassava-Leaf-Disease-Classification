@@ -13,7 +13,8 @@ hps = {
 }
 
 nets = {
-    'vgg': vgg.Vgg
+    'vgg': vgg.Vgg,
+    'pretrained_vgg': vgg.PretrainedVgg,
 }
 
 

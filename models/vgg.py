@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision import models
 
 
 class Vgg(nn.Module):
@@ -40,7 +41,7 @@ class Vgg(nn.Module):
 
         self.lin1 = nn.Linear(512 * 6 * 8, 4096)
         self.lin2 = nn.Linear(4096, 4096)
-        self.lin3 = nn.Linear(4096, 7)
+        self.lin3 = nn.Linear(4096, 5)
 
         self.drop = nn.Dropout(p=0.2)
 
@@ -69,5 +70,19 @@ class Vgg(nn.Module):
         x = F.relu(self.drop(self.lin1(x)))
         x = F.relu(self.drop(self.lin2(x)))
         x = self.lin3(x)
+
+        return x
+
+
+class PretrainedVgg(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.vgg = models.vgg19_bn(pretrained=True)
+        self.lin = nn.Linear(1000, 5)
+
+    def forward(self, x):
+        x = self.vgg(x)
+        x = self.lin(x)
 
         return x
