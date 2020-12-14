@@ -17,6 +17,12 @@ def train(net, dataloader, criterion, optimizer):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
 
+        # fuse crops and batchsize
+        bs, ncrops, c, h, w = inputs.shape
+        inputs = inputs.view(-1, c, h, w)
+
+        labels = labels.repeat_interleave(ncrops)
+
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -43,11 +49,22 @@ def evaluate(net, dataloader, criterion):
     with torch.no_grad():
         net = net.eval()
         loss_tr, correct_count, n_samples = 0.0, 0.0, 0.0
+
         for data in dataloader:
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
 
+            # fuse crops and batchsize
+            bs, ncrops, c, h, w = inputs.shape
+            inputs = inputs.view(-1, c, h, w)
+
+            # forward
             outputs = net(inputs)
+
+            # combine results across the crops
+            outputs = outputs.view(bs, ncrops, -1)
+            outputs = torch.sum(outputs, dim=1) / ncrops
+
             loss = criterion(outputs, labels)
 
             # calculate performance metrics
