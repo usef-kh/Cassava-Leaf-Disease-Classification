@@ -2,4 +2,5 @@
 kaggle/
 __pycache__/
 outputs/
+checkpoints/
 *.sh

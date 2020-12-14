@@ -1,1 +1,1 @@
-Code for the kaggle competition https://www.kaggle.com/c/cassava-leaf-disease-classification
+Code for the kaggle competition https://www.kaggle.com/c/cassava-leaf-disease-classificationl

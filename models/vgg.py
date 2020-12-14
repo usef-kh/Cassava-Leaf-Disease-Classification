@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 
 
 class Vgg(nn.Module):
@@ -72,4 +71,3 @@ class Vgg(nn.Module):
         x = self.lin3(x)
 
         return x
-

@@ -1,3 +1,4 @@
+import sys
 import warnings
 
 import torch
@@ -5,11 +6,14 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from data.data import prepare_data
-from models.vgg import Vgg
+from utils.checkpoint import save
+from utils.logger import Logger
+from utils.setup import setup_hparams, setup_network
 
 warnings.filterwarnings("ignore")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.cuda.empty_cache()
+
 
 def train(net, dataloader, criterion, optimizer):
     net = net.train()
@@ -17,7 +21,7 @@ def train(net, dataloader, criterion, optimizer):
     for i, data in enumerate(dataloader):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-        
+
         '''        
         # fuse crops and batchsize
         bs, ncrops, c, h, w = inputs.shape
@@ -65,7 +69,7 @@ def evaluate(net, dataloader, criterion):
 
             # forward
             outputs = net(inputs)
-            
+
             '''
             # combine results across the crops
             outputs = outputs.view(bs, ncrops, -1)
@@ -93,19 +97,33 @@ def run(net):
 
     net = net.to(device)
 
-    learning_rate = 0.001
-    optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, nesterov=True, weight_decay=0.0001)
+    optimizer = torch.optim.SGD(net.parameters(), lr=hps['lr'], momentum=0.9, nesterov=True, weight_decay=0.0001)
     scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10, verbose=True)
     criterion = nn.CrossEntropyLoss()
 
+    best_acc_v = 0
+
     print("Training on", device)
-    for epoch in range(300):
+    for epoch in range(hps['n_epochs']):
         acc_tr, loss_tr = train(net, trainloader, criterion, optimizer)
+        logger.loss_train.append(loss_tr)
+        logger.acc_train.append(acc_tr)
 
         acc_v, loss_v = evaluate(net, valloader, criterion)
+        logger.loss_val.append(loss_v)
+        logger.acc_val.append(acc_v)
 
         # Update learning rate if plateau
         scheduler.step(acc_v)
+
+        # Save the best network
+        if acc_v > best_acc_v:
+            save(net, hps)
+            best_acc_v = acc_v
+
+        # Save logs regularly
+        if (epoch + 1) % 5 == 0:
+            logger.save(hps)
 
         print('Epoch %2d' % (epoch + 1),
               'Train Accuracy: %2.2f %%' % acc_tr,
@@ -115,8 +133,11 @@ def run(net):
 
 if __name__ == "__main__":
     # Important parameters
+    hps = setup_hparams(sys.argv[1:])
+    net = setup_network(hps)
+    logger = Logger()
 
-    net = Vgg()
+    # Convert to fp16 for faster training
     net.half()
     for layer in net.modules():
         if isinstance(layer, nn.BatchNorm2d):
