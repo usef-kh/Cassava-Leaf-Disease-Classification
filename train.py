@@ -116,19 +116,26 @@ def run(net):
         # Update learning rate if plateau
         scheduler.step(acc_v)
 
-        # Save the best network
-        if acc_v > best_acc_v:
-            save(net, hps)
-            best_acc_v = acc_v
-
         # Save logs regularly
         if (epoch + 1) % 5 == 0:
             logger.save(hps)
 
-        print('Epoch %2d' % (epoch + 1),
-              'Train Accuracy: %2.2f %%' % acc_tr,
-              'Val Accuracy: %2.2f %%' % acc_v,
-              sep='\t\t')
+        # Save the best network and print results
+        if acc_v > best_acc_v:
+            save(net, hps)
+            best_acc_v = acc_v
+
+            print('Epoch %2d' % (epoch + 1),
+                  'Train Accuracy: %2.2f %%' % acc_tr,
+                  'Val Accuracy: %2.2f %%' % acc_v,
+                  'Network Saved',
+                  sep='\t\t')
+
+        else:
+            print('Epoch %2d' % (epoch + 1),
+                  'Train Accuracy: %2.2f %%' % acc_tr,
+                  'Val Accuracy: %2.2f %%' % acc_v,
+                  sep='\t\t')
 
 
 if __name__ == "__main__":
