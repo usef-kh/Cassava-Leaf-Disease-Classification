@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
-data_dir = r"C:\Users\Yousef\Desktop\Projects\Cassava Leaf Disease Classification\kaggle"
+data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
 
 
 class CustomDataset(Dataset):
@@ -80,8 +80,8 @@ def prepare_data():
     train = CustomDataset(xtrain, ytrain, train_transform)
     val = CustomDataset(xval, yval, val_transform)
 
-    trainloader = DataLoader(train, batch_size=128, shuffle=True, num_workers=2)
-    valloader = DataLoader(val, batch_size=128, shuffle=True, num_workers=2)
+    trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
+    valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
     return trainloader, valloader
 

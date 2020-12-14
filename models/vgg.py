@@ -7,7 +7,7 @@ class Vgg(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1a = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, padding=1)
+        self.conv1a = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1)
         self.conv1b = nn.Conv2d(64, out_channels=64, kernel_size=3, padding=1)
 
         self.conv2a = nn.Conv2d(64, 128, 3, padding=1)
