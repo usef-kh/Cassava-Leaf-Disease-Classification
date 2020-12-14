@@ -1,3 +1,5 @@
 .idea/
 kaggle/
 __pycache__/
+outputs/
+*.sh

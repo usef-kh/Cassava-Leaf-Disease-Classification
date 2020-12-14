@@ -2,6 +2,7 @@ import warnings
 
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from data.data import prepare_data
 from models.vgg import Vgg
@@ -94,7 +95,7 @@ def run(net):
 
     learning_rate = 0.001
     optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9, nesterov=True, weight_decay=0.0001)
-    # scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10, verbose=True)
+    scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10, verbose=True)
     criterion = nn.CrossEntropyLoss()
 
     print("Training on", device)
@@ -103,8 +104,8 @@ def run(net):
 
         acc_v, loss_v = evaluate(net, valloader, criterion)
 
-        # # Update learning rate if plateau
-        # scheduler.step(acc_v)
+        # Update learning rate if plateau
+        scheduler.step(acc_v)
 
         print('Epoch %2d' % (epoch + 1),
               'Train Accuracy: %2.2f %%' % acc_tr,
