@@ -64,13 +64,17 @@ def prepare_data():
     xtrain, xval, ytrain, yval = split_data(train)
 
     train_transform = transforms.Compose([
-        transforms.Resize((208, 277)),
-        transforms.ToTensor(),
+        # transforms.Resize((208, 277)),
+        transforms.RandomApply([transforms.RandomAffine(0, translate=(0.2, 0.2))], p=0.5),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomApply([transforms.RandomRotation(10)], p=0.5),
+        transforms.TenCrop((208, 277)),
+        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     val_transform = transforms.Compose([
-        transforms.Resize((208, 277)),
-        transforms.ToTensor(),
+        transforms.TenCrop((208, 277)),
+        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
