@@ -63,21 +63,27 @@ def prepare_data():
 
     xtrain, xval, ytrain, yval = split_data(train)
 
+    # stats obtained from print_stats()
+    mu = [0.4314, 0.4973, 0.3140]
+    st = [0.2015, 0.2067, 0.1825]
+
     train_transform = transforms.Compose([
         transforms.RandomApply([transforms.RandomAffine(0, translate=(0.2, 0.2))], p=0.5),
         transforms.RandomHorizontalFlip(),
         transforms.RandomApply([transforms.RandomRotation(10)], p=0.5),
         transforms.RandomResizedCrop((208, 277)),
         transforms.ToTensor(),
-        #transforms.FiveCrop((208, 277)),
-        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        transforms.Normalize(mean=mu, std=st),
+        # transforms.FiveCrop((208, 277)),
+        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     val_transform = transforms.Compose([
         transforms.Resize((208, 277)),
         transforms.ToTensor(),
-        #transforms.TenCrop((208, 277)),
-        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        transforms.Normalize(mean=mu, std=st),
+        # transforms.TenCrop((208, 277)),
+        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
@@ -89,5 +95,34 @@ def prepare_data():
     return trainloader, valloader
 
 
+def print_stats():
+    train = pd.read_csv(get_path('train.csv'))
+
+    xtrain, xval, ytrain, yval = split_data(train)
+
+    transform = transforms.Compose([
+        transforms.Resize((208, 277)),
+        transforms.ToTensor(),
+    ])
+
+    train = CustomDataset(xtrain, ytrain, transform)
+    trainloader = DataLoader(train, batch_size=1024, shuffle=False)
+
+    mean = 0.
+    std = 0.
+    nb_samples = 0.
+    for data, labels in trainloader:
+        batch_samples = data.size(0)
+        data = data.view(batch_samples, data.size(1), -1)
+        mean += data.mean(2).sum(0)
+        std += data.std(2).sum(0)
+        nb_samples += batch_samples
+
+    mean /= nb_samples
+    std /= nb_samples
+
+    print(mean, std)
+
+
 if __name__ == "__main__":
-    prepare_data()
+    print_stats()
