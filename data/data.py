@@ -64,24 +64,27 @@ def prepare_data():
     xtrain, xval, ytrain, yval = split_data(train)
 
     train_transform = transforms.Compose([
-        # transforms.Resize((208, 277)),
         transforms.RandomApply([transforms.RandomAffine(0, translate=(0.2, 0.2))], p=0.5),
         transforms.RandomHorizontalFlip(),
         transforms.RandomApply([transforms.RandomRotation(10)], p=0.5),
-        transforms.TenCrop((208, 277)),
-        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        transforms.RandomResizedCrop((208, 277)),
+        transforms.ToTensor(),
+        #transforms.FiveCrop((208, 277)),
+        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     val_transform = transforms.Compose([
-        transforms.TenCrop((208, 277)),
-        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        transforms.Resize((208, 277)),
+        transforms.ToTensor(),
+        #transforms.TenCrop((208, 277)),
+        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
     val = CustomDataset(xval, yval, val_transform)
 
-    trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
-    valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
+    trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
+    valloader = DataLoader(val, batch_size=64, shuffle=True, num_workers=2)
 
     return trainloader, valloader
 

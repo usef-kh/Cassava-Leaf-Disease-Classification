@@ -8,7 +8,7 @@ from models.vgg import Vgg
 
 warnings.filterwarnings("ignore")
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+torch.cuda.empty_cache()
 
 def train(net, dataloader, criterion, optimizer):
     net = net.train()
@@ -16,12 +16,14 @@ def train(net, dataloader, criterion, optimizer):
     for i, data in enumerate(dataloader):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-
+        
+        '''        
         # fuse crops and batchsize
         bs, ncrops, c, h, w = inputs.shape
         inputs = inputs.view(-1, c, h, w)
 
         labels = labels.repeat_interleave(ncrops)
+        '''
 
         # zero the parameter gradients
         optimizer.zero_grad()
@@ -54,16 +56,20 @@ def evaluate(net, dataloader, criterion):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
 
+            '''
             # fuse crops and batchsize
             bs, ncrops, c, h, w = inputs.shape
             inputs = inputs.view(-1, c, h, w)
+            '''
 
             # forward
             outputs = net(inputs)
-
+            
+            '''
             # combine results across the crops
             outputs = outputs.view(bs, ncrops, -1)
             outputs = torch.sum(outputs, dim=1) / ncrops
+            '''
 
             loss = criterion(outputs, labels)
 
@@ -111,5 +117,8 @@ if __name__ == "__main__":
 
     net = Vgg()
     net.half()
+    for layer in net.modules():
+        if isinstance(layer, nn.BatchNorm2d):
+            layer.float()
 
     run(net)
