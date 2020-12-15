@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
+data_dir = r"C:\Users\Yousef\Desktop\Projects\Cassava Leaf Disease Classification\kaggle"
 
 
 class CustomDataset(Dataset):
