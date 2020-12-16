@@ -106,6 +106,8 @@ def evaluate_nc(net, dataloader, criterion):
             bs, ncrops, c, h, w = inputs.shape
             inputs = inputs.view(-1, c, h, w)
 
+            labels = labels.repeat_interleave(ncrops)
+
             # forward
             outputs = net(inputs)
             loss = criterion(outputs, labels)
