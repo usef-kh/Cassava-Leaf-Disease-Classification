@@ -10,7 +10,6 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
-data_dir = r"C:\Users\Yousef\Desktop\Projects\Cassava Leaf Disease Classification/kaggle"
 
 
 class CustomDataset(Dataset):
@@ -93,9 +92,9 @@ def prepare_data():
     val_transform = transforms.Compose([
         # Sizing
         transforms.Resize((300, 400)),
-        transforms.TenCrop(224),
+        transforms.RandomCrop(224),
 
-        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        transforms.ToTensor(),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
@@ -141,9 +140,9 @@ def prepare_folds(k=5):
     val_transform = transforms.Compose([
         # Sizing
         transforms.Resize((300, 400)),
-        transforms.TenCrop(224),
+        transforms.RandomCrop(224),
 
-        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        transforms.ToTensor(),
     ])
 
     train = pd.read_csv(get_path('train.csv'))
