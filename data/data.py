@@ -66,29 +66,37 @@ def prepare_data():
     mu = [0.4314, 0.4973, 0.3140]
     st = [0.2015, 0.2067, 0.1825]
 
+
     train_transform = transforms.Compose([
-        transforms.RandomApply([transforms.RandomAffine(0, translate=(0.2, 0.2))], p=0.5),
+        # Sheer, Rotation, Translation
+        transforms.RandomApply([transforms.RandomRotation(360)], p=0.5),
+        transforms.RandomApply([transforms.RandomAffine(degrees=0, translate=(0.1, 0.1))], p=0.5),
+        transforms.RandomApply([transforms.RandomAffine(degrees=0, shear=10)], p=0.5),
+        
+        # Flips
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
-        transforms.RandomApply([transforms.RandomRotation(360)], p=0.5),
-        transforms.RandomApply(
-            [transforms.ColorJitter(brightness=0.1, contrast=0.2, saturation=0.3, hue=0)], p=0.4
-        ),
-        transforms.RandomResizedCrop((208, 277)),
+        
+        # Color
+        transforms.RandomApply([transforms.ColorJitter(brightness=0.3)], p=0.4),
+        transforms.RandomApply([transforms.ColorJitter(contrast=0.2)], p=0.4),
+        transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
+        
+        # Sizing
+        transforms.Resize((300, 400)),
+        transforms.RandomCrop(224),
+        
         transforms.ToTensor(),
-        # transforms.TenCrop((208, 277)),
-        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-        # transforms.Normalize(mean=mu, std=st),
     ])
 
     val_transform = transforms.Compose([
-        transforms.Resize((208, 277)),
+        # Sizing
+        transforms.Resize((300, 400)),
+        transforms.RandomCrop(224),
+    
         transforms.ToTensor(),
-        # transforms.TenCrop((208, 277)),
-        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-        # transforms.Normalize(mean=mu, std=st),
-    ])
-
+      ])
+     
     train = CustomDataset(xtrain, ytrain, train_transform)
     val = CustomDataset(xval, yval, val_transform)
 
