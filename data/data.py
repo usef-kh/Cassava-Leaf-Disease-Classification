@@ -11,6 +11,42 @@ from torch.utils.data import DataLoader, Dataset
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
 
+# stats obtained from print_stats()
+mu = [0.4314, 0.4973, 0.3140]
+st = [0.2015, 0.2067, 0.1825]
+
+Transforms = {
+    'train': transforms.Compose([
+        # Sheer, Rotation, Translation
+        transforms.RandomApply([transforms.RandomRotation(360)], p=0.5),
+        transforms.RandomApply([transforms.RandomAffine(degrees=0, translate=(0.1, 0.1))], p=0.5),
+        transforms.RandomApply([transforms.RandomAffine(degrees=0, shear=10)], p=0.5),
+
+        # Flips
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+
+        # Color
+        transforms.RandomApply([transforms.ColorJitter(brightness=0.3)], p=0.4),
+        transforms.RandomApply([transforms.ColorJitter(contrast=0.2)], p=0.4),
+        transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
+
+        # Sizing
+        transforms.Resize((300, 400)),
+        transforms.RandomCrop(224),
+
+        transforms.ToTensor(),
+    ]),
+
+    'val': transforms.Compose([
+        # Sizing
+        transforms.Resize((300, 400)),
+        transforms.RandomCrop(224),
+
+        transforms.ToTensor(),
+    ])
+}
+
 
 class CustomDataset(Dataset):
     def __init__(self, names, labels, transform=None, train=True):
@@ -63,94 +99,22 @@ def prepare_data():
 
     xtrain, xval, ytrain, yval = split_data(train)
 
-    # stats obtained from print_stats()
-    mu = [0.4314, 0.4973, 0.3140]
-    st = [0.2015, 0.2067, 0.1825]
-
-    train_transform = transforms.Compose([
-        # Sheer, Rotation, Translation
-        transforms.RandomApply([transforms.RandomRotation(360)], p=0.5),
-        transforms.RandomApply([transforms.RandomAffine(degrees=0, translate=(0.1, 0.1))], p=0.5),
-        transforms.RandomApply([transforms.RandomAffine(degrees=0, shear=10)], p=0.5),
-
-        # Flips
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-
-        # Color
-        transforms.RandomApply([transforms.ColorJitter(brightness=0.3)], p=0.4),
-        transforms.RandomApply([transforms.ColorJitter(contrast=0.2)], p=0.4),
-        transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
-
-        # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
-
-        transforms.ToTensor(),
-    ])
-
-    val_transform = transforms.Compose([
-        # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
-
-        transforms.ToTensor(),
-    ])
-
-    train = CustomDataset(xtrain, ytrain, train_transform)
-    val = CustomDataset(xval, yval, val_transform)
-
-    '''
-    counts = [870, 1751, 1909, 10526, 2061]
-    total_count = sum(counts)
-    weights = [total_count / c for c in counts]
-    # sample_weights = [weights[label] for label in ytrain]
-    # sampler = WeightedRandomSampler(sample_weights, len(ytrain))
-    '''
+    train = CustomDataset(xtrain, ytrain, Transforms['train'])
+    val = CustomDataset(xval, yval, Transforms['val'])
 
     trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
-    valloader = DataLoader(val, batch_size=64, shuffle=True, num_workers=2)
+    valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
     return trainloader, valloader
 
 
 def prepare_folds(k=5):
-    train_transform = transforms.Compose([
-        # Sheer, Rotation, Translation
-        transforms.RandomApply([transforms.RandomRotation(360)], p=0.5),
-        transforms.RandomApply([transforms.RandomAffine(degrees=0, translate=(0.1, 0.1))], p=0.5),
-        transforms.RandomApply([transforms.RandomAffine(degrees=0, shear=10)], p=0.5),
-
-        # Flips
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomVerticalFlip(),
-
-        # Color
-        transforms.RandomApply([transforms.ColorJitter(brightness=0.3)], p=0.4),
-        transforms.RandomApply([transforms.ColorJitter(contrast=0.2)], p=0.4),
-        transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
-
-        # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
-
-        transforms.ToTensor(),
-    ])
-
-    val_transform = transforms.Compose([
-        # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
-
-        transforms.ToTensor(),
-    ])
-
     train = pd.read_csv(get_path('train.csv'))
 
     X = train['image_id'].values
     y = train['label'].values
 
-    skf = StratifiedKFold(n_splits=k)
+    skf = StratifiedKFold(n_splits=k, random_state=42)
 
     loaders = []
 
@@ -158,11 +122,11 @@ def prepare_folds(k=5):
         xtrain, ytrain = X[train_idx], y[train_idx]
         xval, yval = X[test_idx], y[test_idx]
 
-        train = CustomDataset(xtrain, ytrain, train_transform)
-        val = CustomDataset(xval, yval, val_transform)
+        train = CustomDataset(xtrain, ytrain, Transforms['train'])
+        val = CustomDataset(xval, yval, Transforms['val'])
 
         trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
-        valloader = DataLoader(val, batch_size=64, shuffle=True, num_workers=2)
+        valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
         loaders.append((trainloader, valloader))
 
