@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from data.data import prepare_folds
-from train import train, evaluate
+from loops import train, evaluate
 from utils.checkpoint import save
 from utils.setup import setup_network, setup_hparams
 
