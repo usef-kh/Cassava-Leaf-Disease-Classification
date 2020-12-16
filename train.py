@@ -61,11 +61,11 @@ def evaluate(net, dataloader, criterion):
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
             
-            '''
+
             # fuse crops and batchsize
             bs, ncrops, c, h, w = inputs.shape
             inputs = inputs.view(-1, c, h, w)
-            '''
+
 
             # forward
             outputs = net(inputs)
@@ -97,7 +97,8 @@ def run(net):
 
     net = net.to(device)
 
-    optimizer = torch.optim.SGD(net.parameters(), lr=hps['lr'], momentum=0.9, nesterov=True, weight_decay=0.0001)
+    # optimizer = torch.optim.SGD(net.parameters(), lr=hps['lr'], momentum=0.9, nesterov=True, weight_decay=0.0001)
+    optimizer = torch.optim.Adam(net.parameters(), lr=hps['lr'])
     scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10, verbose=True)
 
     '''
@@ -113,7 +114,7 @@ def run(net):
     
     best_acc_v = 0
 
-    print("Training on", device)
+    print("Training", hps['name'], "on", device)
     for epoch in range(hps['n_epochs']):
         acc_tr, loss_tr = train(net, trainloader, criterion, optimizer)
         logger.loss_train.append(loss_tr)
