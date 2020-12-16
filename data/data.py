@@ -10,10 +10,11 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
+data_dir = r"C:/Users/Yousef/Desktop/Projects/Cassava Leaf Disease Classification/kaggle"
 
 # stats obtained from print_stats()
-mu = [0.4314, 0.4973, 0.3140]
-st = [0.2015, 0.2067, 0.1825]
+mu = [0.4314, 0.4977, 0.3149]
+st = [0.2061, 0.2110, 0.1873]
 
 Transforms = {
     'train': transforms.Compose([
@@ -134,17 +135,21 @@ def prepare_folds(k=5):
 
 
 def print_stats():
+    '''
+    This function will iterate through the train loader and print the mean and std of the RGB Channels
+    :return:
+    '''
     train = pd.read_csv(get_path('train.csv'))
 
     xtrain, xval, ytrain, yval = split_data(train)
 
     transform = transforms.Compose([
-        transforms.Resize((208, 277)),
+        transforms.Resize((300, 400)),
         transforms.ToTensor(),
     ])
 
     train = CustomDataset(xtrain, ytrain, transform)
-    trainloader = DataLoader(train, batch_size=1024, shuffle=False)
+    trainloader = DataLoader(train, batch_size=2048, shuffle=False)
 
     mean = 0.
     std = 0.
@@ -152,6 +157,8 @@ def print_stats():
     for data, labels in trainloader:
         batch_samples = data.size(0)
         data = data.view(batch_samples, data.size(1), -1)
+        data = data.float()
+
         mean += data.mean(2).sum(0)
         std += data.std(2).sum(0)
         nb_samples += batch_samples
@@ -163,4 +170,4 @@ def print_stats():
 
 
 if __name__ == "__main__":
-    prepare_folds()
+    print_stats()
