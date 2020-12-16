@@ -165,14 +165,15 @@ def test_nc(net, dataloader, criterion):
 
             # forward
             outputs = net(inputs)
-            loss = criterion(outputs, labels)
-
-            # calculate performance metrics
-            loss_tr += loss.item()
 
             # combine results across the crops
             outputs = outputs.view(bs, ncrops, -1)
             outputs = torch.sum(outputs, dim=1) / ncrops
+
+            loss = criterion(outputs, labels)
+
+            # calculate performance metrics
+            loss_tr += loss.item()
 
             _, preds = torch.max(outputs.data, 1)
 
