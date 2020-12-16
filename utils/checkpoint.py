@@ -3,9 +3,9 @@ import os
 import torch
 
 
-def save(net, hps):
+def save(net, hps, desc=''):
     # save model params
-    params_path = os.path.join(hps['model_save_dir'], hps['network'])
+    params_path = os.path.join(hps['model_save_dir'], hps['network'] + desc)
     torch.save(net.state_dict(), params_path)
 
 
