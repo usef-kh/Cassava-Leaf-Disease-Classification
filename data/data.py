@@ -93,9 +93,9 @@ def prepare_data():
     val_transform = transforms.Compose([
         # Sizing
         transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
+        transforms.TenCrop(224),
 
-        transforms.ToTensor(),
+        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
@@ -141,9 +141,9 @@ def prepare_folds(k=5):
     val_transform = transforms.Compose([
         # Sizing
         transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
+        transforms.TenCrop(224),
 
-        transforms.ToTensor(),
+        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
     ])
 
     train = pd.read_csv(get_path('train.csv'))
