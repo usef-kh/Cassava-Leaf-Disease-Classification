@@ -6,7 +6,7 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
+from torch.utils.data import DataLoader, Dataset
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
 
@@ -69,20 +69,24 @@ def prepare_data():
     train_transform = transforms.Compose([
         transforms.RandomApply([transforms.RandomAffine(0, translate=(0.2, 0.2))], p=0.5),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomApply([transforms.RandomRotation(10)], p=0.5),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomApply([transforms.RandomRotation(360)], p=0.5),
+        transforms.RandomApply(
+            [transforms.ColorJitter(brightness=0.1, contrast=0.2, saturation=0.3, hue=0)], p=0.4
+        ),
         transforms.RandomResizedCrop((208, 277)),
         transforms.ToTensor(),
-        #transforms.TenCrop((208, 277)),
-        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-        #transforms.Normalize(mean=mu, std=st),
+        # transforms.TenCrop((208, 277)),
+        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        # transforms.Normalize(mean=mu, std=st),
     ])
 
     val_transform = transforms.Compose([
         transforms.Resize((208, 277)),
         transforms.ToTensor(),
-        #transforms.TenCrop((208, 277)),
-        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-        #transforms.Normalize(mean=mu, std=st),
+        # transforms.TenCrop((208, 277)),
+        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        # transforms.Normalize(mean=mu, std=st),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
@@ -93,9 +97,9 @@ def prepare_data():
 
     weights = [total_count / c for c in counts]
 
-    #sample_weights = [weights[label] for label in ytrain]
+    # sample_weights = [weights[label] for label in ytrain]
 
-    #sampler = WeightedRandomSampler(sample_weights, len(ytrain))
+    # sampler = WeightedRandomSampler(sample_weights, len(ytrain))
 
     trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
     valloader = DataLoader(val, batch_size=64, shuffle=True, num_workers=2)
