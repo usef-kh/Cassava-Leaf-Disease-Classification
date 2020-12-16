@@ -1,6 +1,6 @@
 import os
 
-from models import vgg, efficient_net
+from models import vgg, efficient_net, resnet
 from utils.checkpoint import restore
 
 hps = {
@@ -16,6 +16,7 @@ nets = {
     'vgg': vgg.Vgg,
     'pretrained_vgg': vgg.PretrainedVgg,
     'eff_net': efficient_net.PretrainedEfficientNet,
+    'resnet': resnet.ResNet,
 }
 
 
