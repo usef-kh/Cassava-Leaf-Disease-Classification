@@ -6,11 +6,9 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
-data_dir = r"C:\Users\Yousef\Desktop\Projects\Cassava Leaf Disease Classification\kaggle"
 
 
 class CustomDataset(Dataset):
@@ -74,21 +72,30 @@ def prepare_data():
         transforms.RandomApply([transforms.RandomRotation(10)], p=0.5),
         transforms.RandomResizedCrop((208, 277)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=mu, std=st),
-        # transforms.FiveCrop((208, 277)),
-        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        #transforms.TenCrop((208, 277)),
+        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        #transforms.Normalize(mean=mu, std=st),
     ])
 
     val_transform = transforms.Compose([
         transforms.Resize((208, 277)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=mu, std=st),
-        # transforms.TenCrop((208, 277)),
-        # transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        #transforms.TenCrop((208, 277)),
+        #transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+        #transforms.Normalize(mean=mu, std=st),
     ])
 
     train = CustomDataset(xtrain, ytrain, train_transform)
     val = CustomDataset(xval, yval, val_transform)
+
+    counts = [870, 1751, 1909, 10526, 2061]
+    total_count = sum(counts)
+
+    weights = [total_count / c for c in counts]
+
+    #sample_weights = [weights[label] for label in ytrain]
+
+    #sampler = WeightedRandomSampler(sample_weights, len(ytrain))
 
     trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
     valloader = DataLoader(val, batch_size=64, shuffle=True, num_workers=2)

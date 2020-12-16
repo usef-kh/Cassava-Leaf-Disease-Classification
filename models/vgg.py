@@ -79,13 +79,10 @@ class PretrainedVgg(nn.Module):
         super().__init__()
 
         self.vgg = models.vgg19_bn(pretrained=True)
-
-        for param in self.vgg.parameters():
-            param.requires_grad = False
-
-        self.vgg.classifier[6] = nn.Linear(4096, 5)
+        self.lin = nn.Linear(1000, 5)
 
     def forward(self, x):
         x = self.vgg(x)
+        x = self.lin(x)
 
         return x

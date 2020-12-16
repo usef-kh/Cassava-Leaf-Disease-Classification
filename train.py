@@ -21,8 +21,8 @@ def train(net, dataloader, criterion, optimizer):
     for i, data in enumerate(dataloader):
         inputs, labels = data
         inputs, labels = inputs.to(device), labels.to(device)
-
-        '''        
+        
+        '''
         # fuse crops and batchsize
         bs, ncrops, c, h, w = inputs.shape
         inputs = inputs.view(-1, c, h, w)
@@ -60,7 +60,7 @@ def evaluate(net, dataloader, criterion):
         for data in dataloader:
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
-
+            
             '''
             # fuse crops and batchsize
             bs, ncrops, c, h, w = inputs.shape
@@ -69,7 +69,7 @@ def evaluate(net, dataloader, criterion):
 
             # forward
             outputs = net(inputs)
-
+            
             '''
             # combine results across the crops
             outputs = outputs.view(bs, ncrops, -1)
@@ -99,8 +99,18 @@ def run(net):
 
     optimizer = torch.optim.SGD(net.parameters(), lr=hps['lr'], momentum=0.9, nesterov=True, weight_decay=0.0001)
     scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=10, verbose=True)
-    criterion = nn.CrossEntropyLoss()
 
+    '''
+    # Create a weighted loss function to handle major imbalances in dataset
+    counts = [870, 1751, 1909, 10526, 2061]
+    min_count = min(counts)
+    weights = [min_count / count for count in counts]
+    weights = torch.tensor(weights).to(device).half()
+
+    criterion = nn.CrossEntropyLoss(weight=weights)
+    '''
+    criterion = nn.CrossEntropyLoss()
+    
     best_acc_v = 0
 
     print("Training on", device)
@@ -150,4 +160,5 @@ if __name__ == "__main__":
         if isinstance(layer, nn.BatchNorm2d):
             layer.float()
 
+    print(net)
     run(net)
