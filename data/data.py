@@ -8,9 +8,9 @@ from PIL import Image
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
+import numpy as np
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle/"
-data_dir = r"C:\Users\Yousef\Desktop\Projects\Cassava Leaf Disease Classification/kaggle/"
 
 # stats obtained from print_stats()
 mu = [0.4314, 0.4977, 0.3149]
@@ -118,7 +118,7 @@ def prepare_data(merged=True):
     train = CustomDataset(xtrain, ytrain, Transforms['train'])
     val = CustomDataset(xval, yval, Transforms['val'])
 
-    trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
+    trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
     valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
     return trainloader, valloader
@@ -128,7 +128,7 @@ def prepare_folds(k=5, merged=True):
     df_train = pd.read_csv(get_path('train.csv', merged=merged))
     train = prepare_paths(df_train, merged=merged)
 
-    X, y = train
+    X, y = np.array(train[0]), np.array(train[1])
 
     skf = StratifiedKFold(n_splits=k, random_state=42)
 
@@ -141,7 +141,7 @@ def prepare_folds(k=5, merged=True):
         train = CustomDataset(xtrain, ytrain, Transforms['train'])
         val = CustomDataset(xval, yval, Transforms['val'])
 
-        trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
+        trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
         valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
         loaders.append((trainloader, valloader))
