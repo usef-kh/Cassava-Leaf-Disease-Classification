@@ -62,7 +62,7 @@ if __name__ == "__main__":
     if hps['fold_id'] is None:
         raise RuntimeError("Please select which fold to train")
 
-    elif hps['fold_id'] not in {'1', '2', '3', '4', '5'}:
+    elif hps['fold_id'] not in {'1', '2', '3', '4', '0'}:
         raise RuntimeError("Please select a valid fold_id")
 
     # Convert to fp16 for faster training
