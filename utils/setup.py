@@ -10,6 +10,7 @@ hps = {
     'restore': False,  # load from checkpoint
     'n_epochs': 300,
     'lr': 0.01,  # starting learning rate
+    'fold_id': None,    # Which fold to train
 }
 
 nets = {
