@@ -9,8 +9,8 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 
-data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
-data_dir = r"C:/Users/Yousef/Desktop/Projects/Cassava Leaf Disease Classification/kaggle"
+data_dir = r"/projectnb/textconv/ykh/cassava/kaggle/"
+data_dir = r"C:\Users\Yousef\Desktop\Projects\Cassava Leaf Disease Classification/kaggle/"
 
 # stats obtained from print_stats()
 mu = [0.4314, 0.4977, 0.3149]
@@ -33,16 +33,16 @@ Transforms = {
         transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
 
         # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
+        transforms.Resize(600),
+        transforms.RandomCrop(512),
 
         transforms.ToTensor(),
     ]),
 
     'val': transforms.Compose([
         # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
+        transforms.Resize(600),
+        transforms.RandomCrop(512),
 
         transforms.ToTensor(),
     ])
@@ -50,15 +50,10 @@ Transforms = {
 
 
 class CustomDataset(Dataset):
-    def __init__(self, names, labels, transform=None, train=True):
-        self.image_names = names
+    def __init__(self, image_paths, labels, transform=None):
+        self.image_paths = image_paths
         self.labels = labels
         self.transform = transform
-
-        if train:
-            self.image_dir = get_path('train_images')
-        else:
-            self.image_dir = get_path('test_images')
 
     def __len__(self):
         return len(self.labels)
@@ -67,7 +62,7 @@ class CustomDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        img_path = os.path.join(self.image_dir, self.image_names[idx])
+        img_path = self.image_paths[idx]
 
         if not os.path.exists(img_path):
             raise FileNotFoundError(img_path)
@@ -84,19 +79,39 @@ class CustomDataset(Dataset):
         return img, label
 
 
-def get_path(file):
+def get_path(file, merged=True):
+    if merged:
+        return os.path.join(data_dir, 'merged_data', file)
+
     return os.path.join(data_dir, file)
 
 
-def split_data(data: pd.DataFrame()):
-    X = data['image_id'].values
-    y = data['label'].values
-
+def split_data(data):
+    X, y = data
     return train_test_split(X, y, stratify=y, train_size=0.8, random_state=42, shuffle=True)
 
 
-def prepare_data():
-    train = pd.read_csv(get_path('train.csv'))
+def prepare_paths(data: pd.DataFrame(), merged=True):
+    imgs = data['image_id'].values
+    y = data['label'].values.tolist()
+
+    if merged:
+        img_dir = os.path.join(data_dir, 'merged_data', 'train_images')
+
+    else:
+        img_dir = os.path.join(data_dir, 'train_images')
+
+    X = []
+    for img in imgs:
+        full_path = os.path.join(img_dir, img)
+        X.append(full_path)
+
+    return X, y
+
+
+def prepare_data(merged=True):
+    df_train = pd.read_csv(get_path('train.csv', merged=merged))
+    train = prepare_paths(df_train, merged=merged)
 
     xtrain, xval, ytrain, yval = split_data(train)
 
@@ -109,11 +124,11 @@ def prepare_data():
     return trainloader, valloader
 
 
-def prepare_folds(k=5):
-    train = pd.read_csv(get_path('train.csv'))
+def prepare_folds(k=5, merged=True):
+    df_train = pd.read_csv(get_path('train.csv', merged=merged))
+    train = prepare_paths(df_train, merged=merged)
 
-    X = train['image_id'].values
-    y = train['label'].values
+    X, y = train
 
     skf = StratifiedKFold(n_splits=k, random_state=42)
 
@@ -134,27 +149,31 @@ def prepare_folds(k=5):
     return loaders
 
 
-def print_stats():
+def print_stats(merged=True):
     '''
     This function will iterate through the train loader and print the mean and std of the RGB Channels
     :return:
     '''
-    train = pd.read_csv(get_path('train.csv'))
+
+    df_train = pd.read_csv(get_path('train.csv', merged=merged))
+    train = prepare_paths(df_train, merged=merged)
 
     xtrain, xval, ytrain, yval = split_data(train)
 
     transform = transforms.Compose([
-        transforms.Resize((300, 400)),
+        transforms.Resize((600, 600)),
+        transforms.RandomCrop(512),
         transforms.ToTensor(),
     ])
 
     train = CustomDataset(xtrain, ytrain, transform)
-    trainloader = DataLoader(train, batch_size=2048, shuffle=False)
+    trainloader = DataLoader(train, batch_size=5, shuffle=False)
 
     mean = 0.
     std = 0.
     nb_samples = 0.
     for data, labels in trainloader:
+        print(data.shape)
         batch_samples = data.size(0)
         data = data.view(batch_samples, data.size(1), -1)
         data = data.float()
