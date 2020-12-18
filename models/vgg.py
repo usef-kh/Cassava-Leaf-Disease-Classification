@@ -86,3 +86,4 @@ class PretrainedVgg(nn.Module):
         x = self.lin(x)
 
         return x
+

@@ -8,13 +8,21 @@ from PIL import Image
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
+import numpy as np
 
 data_dir = r"/projectnb/textconv/ykh/cassava/kaggle"
-data_dir = r"C:/Users/Yousef/Desktop/Projects/Cassava Leaf Disease Classification/kaggle"
+
 
 # stats obtained from print_stats()
 mu = [0.4314, 0.4977, 0.3149]
 st = [0.2061, 0.2110, 0.1873]
+
+def eraseN(img):
+    n = np.random.randint(10)
+    for i in range(n):
+        img = transforms.RandomErasing(p=0.5, scale=(0.005, 0.005))(img)
+    
+    return img
 
 Transforms = {
     'train': transforms.Compose([
@@ -33,18 +41,19 @@ Transforms = {
         transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
 
         # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
-
+        # transforms.Resize((300, 400)),
+        transforms.RandomCrop(512),
         transforms.ToTensor(),
+        transforms.Normalize(mu, st),
+        transforms.RandomApply([transforms.Lambda(eraseN)], p=0.5),
     ]),
 
     'val': transforms.Compose([
         # Sizing
-        transforms.Resize((300, 400)),
-        transforms.RandomCrop(224),
-
+        # transforms.Resize((300, 400)),
+        transforms.CenterCrop(512),
         transforms.ToTensor(),
+        transforms.Normalize(mu, st),
     ])
 }
 
@@ -103,7 +112,7 @@ def prepare_data():
     train = CustomDataset(xtrain, ytrain, Transforms['train'])
     val = CustomDataset(xval, yval, Transforms['val'])
 
-    trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
+    trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
     valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
     return trainloader, valloader
@@ -126,7 +135,7 @@ def prepare_folds(k=5):
         train = CustomDataset(xtrain, ytrain, Transforms['train'])
         val = CustomDataset(xval, yval, Transforms['val'])
 
-        trainloader = DataLoader(train, batch_size=64, shuffle=True, num_workers=2)
+        trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
         valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
 
         loaders.append((trainloader, valloader))
