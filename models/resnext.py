@@ -2,7 +2,7 @@ import torch.nn as nn
 from torchvision import models
 
 
-class ResNet(nn.Module):
+class ResNext(nn.Module):
     def __init__(self):
         super().__init__()
 
@@ -15,4 +15,3 @@ class ResNet(nn.Module):
         x = self.resnet(x)
 
         return x
-

@@ -1,6 +1,6 @@
 import os
 
-from models import vgg, efficient_net, resnet
+from models import vgg, efficient_net, resnext
 from utils.checkpoint import restore
 
 hps = {
@@ -10,14 +10,14 @@ hps = {
     'restore': False,  # load from checkpoint
     'n_epochs': 300,
     'lr': 0.01,  # starting learning rate
-    'fold_id': None,    # Which fold to train
+    'fold_id': None,  # Which fold to train
 }
 
 nets = {
     'vgg': vgg.Vgg,
     'pretrained_vgg': vgg.PretrainedVgg,
     'eff_net': efficient_net.PretrainedEfficientNet,
-    'resnet': resnet.ResNet,
+    'resnext': resnext.ResNext,
 }
 
 
