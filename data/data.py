@@ -41,7 +41,6 @@ Transforms = {
         transforms.RandomApply([transforms.ColorJitter(saturation=0.3)], p=0.4),
 
         # Sizing
-        # transforms.Resize((300, 400)),
         transforms.RandomCrop(512),
         transforms.ToTensor(),
         transforms.Normalize(mu, st),
@@ -50,7 +49,6 @@ Transforms = {
 
     'val': transforms.Compose([
         # Sizing
-        # transforms.Resize((300, 400)),
         transforms.CenterCrop(512),
         transforms.ToTensor(),
         transforms.Normalize(mu, st),
@@ -112,13 +110,13 @@ def prepare_data():
     train = CustomDataset(xtrain, ytrain, Transforms['train'])
     val = CustomDataset(xval, yval, Transforms['val'])
 
-    trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
-    valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
+    trainloader = DataLoader(train, batch_size=16, shuffle=True, num_workers=2)
+    valloader = DataLoader(val, batch_size=16, shuffle=True, num_workers=2)
 
     return trainloader, valloader
 
 
-def prepare_folds(k=5):
+def prepare_folds(k=5, bs=16):
     train = pd.read_csv(get_path('train.csv'))
 
     X = train['image_id'].values
@@ -135,8 +133,8 @@ def prepare_folds(k=5):
         train = CustomDataset(xtrain, ytrain, Transforms['train'])
         val = CustomDataset(xval, yval, Transforms['val'])
 
-        trainloader = DataLoader(train, batch_size=32, shuffle=True, num_workers=2)
-        valloader = DataLoader(val, batch_size=32, shuffle=True, num_workers=2)
+        trainloader = DataLoader(train, batch_size=bs, shuffle=True, num_workers=2)
+        valloader = DataLoader(val, batch_size=bs, shuffle=True, num_workers=2)
 
         loaders.append((trainloader, valloader))
 

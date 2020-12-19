@@ -6,12 +6,12 @@ class ResNext(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.resnet = models.resnext50_32x4d()
+        self.resnext = models.resnext50_32x4d(pretrained=True)
 
-        n_features = self.resnet.fc.in_features
-        self.resnet.fc = nn.Linear(n_features, 5)
+        n_features = self.resnext.fc.in_features
+        self.resnext.fc = nn.Linear(n_features, 5)
 
     def forward(self, x):
-        x = self.resnet(x)
+        x = self.resnext(x)
 
         return x
