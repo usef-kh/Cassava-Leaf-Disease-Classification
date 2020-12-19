@@ -1,16 +1,14 @@
+import timm
 import torch.nn as nn
-from efficientnet_pytorch import EfficientNet
 
 
-class PretrainedEfficientNet(nn.Module):
-    def __init__(self):
+class EfficientNet(nn.Module):
+    def __init__(self, n_class=5, pretrained=True):
         super().__init__()
-
-        self.eff_net = EfficientNet.from_pretrained('efficientnet-b4')
-        in_features = self.eff_net._fc.in_features
-        self.eff_net._fc = nn.Linear(in_features, 5)
+        self.model = timm.create_model('tf_efficientnet_b4_ns', pretrained=pretrained)
+        n_features = self.model.classifier.in_features
+        self.model.classifier = nn.Linear(n_features, n_class)
 
     def forward(self, x):
-        x = self.eff_net(x)
-
+        x = self.model(x)
         return x

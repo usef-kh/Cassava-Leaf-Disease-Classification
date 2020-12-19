@@ -15,8 +15,7 @@ hps = {
 
 nets = {
     'vgg': vgg.Vgg,
-    'pretrained_vgg': vgg.PretrainedVgg,
-    'eff_net': efficient_net.PretrainedEfficientNet,
+    'efn': efficient_net.EfficientNet,
     'resnext': resnext.ResNext,
 }
 
